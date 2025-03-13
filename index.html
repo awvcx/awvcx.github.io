@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>awv</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'IBM Plex Mono', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #000;
+            color: #e0e0e0;
+        }
+
+        .container {
+            text-align: center;
+        }
+
+        .eth-line {
+            font-size: 14px;
+            letter-spacing: 0.5em;
+            margin: 8px 0;
+            position: relative;
+            line-height: 1.4;
+        }
+
+        .original-text {
+            display: block;
+            width: 100%;
+            text-align: center;
+            transition: opacity 0.1s ease;
+        }
+
+        .eth-line.hoverable {
+            cursor: pointer;
+        }
+
+        .hover-text {
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            color: #fff;
+            font-weight: 500;
+            text-decoration: none;
+            height: 100%;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.3s ease;
+        }
+
+        @media (prefers-color-scheme: light) {
+            body {
+                background-color: #ffffff;
+                color: #121212;
+            }
+
+            .hover-text {
+                color: #000;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <!-- Non-hoverable line -->
+        <div class="eth-line">
+            <span class="original-text">0x5EB9F</span>
+        </div>
+
+        <!-- Hoverable line -->
+        <div class="eth-line hoverable">
+            <span class="original-text">109b4Ff</span>
+            <a href="https://zora.co/@awv/" class="hover-text" target="_blank">Zora</a>
+        </div>
+
+        <!-- Non-hoverable line -->
+        <div class="eth-line">
+            <span class="original-text">060C262</span>
+        </div>
+
+        <!-- Hoverable line -->
+        <div class="eth-line hoverable">
+            <span class="original-text">854Cf6f</span>
+            <a href="https://basescan.org/address/0x5eb9f109b4ff060c262854cf6fcaf290d9b80eb1" class="hover-text" target="_blank">BaseScan</a>
+        </div>
+
+        <!-- Non-hoverable line -->
+        <div class="eth-line">
+            <span class="original-text">cAf290d</span>
+        </div>
+
+        <!-- Hoverable line -->
+        <div class="eth-line hoverable">
+            <span class="original-text">9B80eB1</span>
+            <a href="mailto:contact@awv.cx" class="hover-text" target="_blank">Email</a>
+        </div>
+    </div>
+
+    <script>
+        const chars = '0123456789abcdef';
+
+        document.querySelectorAll('.eth-line.hoverable').forEach(line => {
+            const originalTextElement = line.querySelector('.original-text');
+            const originalText = originalTextElement.textContent;
+            const hoverTextElement = line.querySelector('.hover-text');
+
+            let scrambleInterval;
+            let scrambleCount = 0;
+            const maxScrambles = 5;
+
+            line.addEventListener('mouseenter', () => {
+                scrambleCount = 0;
+                scrambleInterval = setInterval(() => {
+                    scrambleCount++;
+
+                    let scrambledText = '';
+                    for (let i = 0; i < originalText.length; i++) {
+                        scrambledText += chars.charAt(Math.floor(Math.random() * chars.length));
+                    }
+                    originalTextElement.textContent = scrambledText;
+
+                    if (scrambleCount >= maxScrambles) {
+                        clearInterval(scrambleInterval);
+                        originalTextElement.style.opacity = '0';
+                        hoverTextElement.style.opacity = '1';
+                    }
+                }, 50);
+            });
+
+            line.addEventListener('mouseleave', () => {
+                clearInterval(scrambleInterval);
+                originalTextElement.textContent = originalText;
+                originalTextElement.style.opacity = '1';
+                hoverTextElement.style.opacity = '0';
+            });
+        });
+    </script>
+</body>
+</html>
