@@ -36,6 +36,7 @@
             position: relative;
             line-height: 1.4;
             margin-right: -0.5em;
+            cursor: pointer;
         }
 
         .original-text {
@@ -43,10 +44,6 @@
             width: 100%;
             text-align: center;
             transition: opacity 0.1s ease;
-        }
-
-        .eth-line.hoverable {
-            cursor: pointer;
         }
 
         .hover-text {
@@ -80,35 +77,29 @@
 <body>
     <div class="container">
 
-        <!-- Non-hoverable line -->
-        <div class="eth-line">
+        <div class="eth-line non-reveal">
             <span class="original-text">0x5EB9F</span>
         </div>
 
-        <!-- Hoverable line -->
-        <div class="eth-line hoverable">
+        <div class="eth-line reveal">
             <span class="original-text">109b4Ff</span>
             <a href="https://zora.co/@awv/" class="hover-text" target="_blank">Zora</a>
         </div>
 
-        <!-- Non-hoverable line -->
-        <div class="eth-line">
+        <div class="eth-line non-reveal">
             <span class="original-text">060C262</span>
         </div>
 
-        <!-- Hoverable line -->
-        <div class="eth-line hoverable">
+        <div class="eth-line reveal">
             <span class="original-text">854Cf6f</span>
             <a href="https://basescan.org/address/0x5eb9f109b4ff060c262854cf6fcaf290d9b80eb1" class="hover-text" target="_blank">BaseScan</a>
         </div>
 
-        <!-- Non-hoverable line -->
-        <div class="eth-line">
+        <div class="eth-line non-reveal">
             <span class="original-text">cAf290d</span>
         </div>
 
-        <!-- Hoverable line -->
-        <div class="eth-line hoverable">
+        <div class="eth-line reveal">
             <span class="original-text">9B80eB1</span>
             <a href="mailto:contact@awv.cx" class="hover-text" target="_blank">Email</a>
         </div>
@@ -117,41 +108,128 @@
     <script>
         const chars = '0123456789abcdef';
 
-        document.querySelectorAll('.eth-line.hoverable').forEach(line => {
-            const originalTextElement = line.querySelector('.original-text');
-            const originalText = originalTextElement.textContent;
-            const hoverTextElement = line.querySelector('.hover-text');
-
-            let scrambleInterval;
-            let scrambleCount = 0;
-            const maxScrambles = 5;
-
-            line.addEventListener('mouseenter', () => {
-                scrambleCount = 0;
-                scrambleInterval = setInterval(() => {
-                    scrambleCount++;
-
-                    let scrambledText = '';
-                    for (let i = 0; i < originalText.length; i++) {
-                        scrambledText += chars.charAt(Math.floor(Math.random() * chars.length));
-                    }
-                    originalTextElement.textContent = scrambledText;
-
-                    if (scrambleCount >= maxScrambles) {
-                        clearInterval(scrambleInterval);
-                        originalTextElement.style.opacity = '0';
-                        hoverTextElement.style.opacity = '1';
-                    }
-                }, 50);
-            });
-
-            line.addEventListener('mouseleave', () => {
-                clearInterval(scrambleInterval);
-                originalTextElement.textContent = originalText;
-                originalTextElement.style.opacity = '1';
-                hoverTextElement.style.opacity = '0';
-            });
+        document.addEventListener('DOMContentLoaded', () => {
+            setupAllLines();
         });
+
+        function setupAllLines() {
+            setupAmbientScrambling();
+
+            setupRevealingLines();
+            setupNonRevealingLines();
+        }
+
+        function setupAmbientScrambling() {
+            document.querySelectorAll('.eth-line').forEach(line => {
+                const originalTextElement = line.querySelector('.original-text');
+                const originalText = originalTextElement.textContent;
+
+                originalTextElement.dataset.originalText = originalText;
+
+                const positions = [];
+                for (let i = 0; i < originalText.length; i++) {
+                    if (Math.random() < 0.2) { // 20% chance for each character
+                        positions.push(i);
+                    }
+                }
+
+                if (positions.length === 0 && originalText.length > 0) {
+                    positions.push(Math.floor(Math.random() * originalText.length));
+                }
+
+                const speed = 150 + Math.floor(Math.random() * 350); // 150-500ms
+
+                const intervalId = setInterval(() => {
+                    if (!line.classList.contains('active-hover')) {
+                        let text = originalText.split('');
+
+                        positions.forEach(pos => {
+                            if (Math.random() < 0.1) {
+                                const idx = positions.indexOf(pos);
+                                positions[idx] = Math.floor(Math.random() * originalText.length);
+                                pos = positions[idx];
+                            }
+
+                            if (pos < text.length) {
+                                text[pos] = chars.charAt(Math.floor(Math.random() * chars.length));
+                            }
+                        });
+
+                        originalTextElement.textContent = text.join('');
+                    }
+                }, speed);
+
+                line.dataset.ambientIntervalId = intervalId;
+            });
+        }
+
+        function setupRevealingLines() {
+            document.querySelectorAll('.eth-line.reveal').forEach(line => {
+                const originalTextElement = line.querySelector('.original-text');
+                const originalText = originalTextElement.dataset.originalText;
+                const hoverTextElement = line.querySelector('.hover-text');
+
+                let scrambleInterval;
+                let scrambleCount = 0;
+                const maxScrambles = 5;
+
+                line.addEventListener('mouseenter', () => {
+                    line.classList.add('active-hover');
+                    scrambleCount = 0;
+
+                    scrambleInterval = setInterval(() => {
+                        scrambleCount++;
+
+                        let scrambledText = '';
+                        for (let i = 0; i < originalText.length; i++) {
+                            scrambledText += chars.charAt(Math.floor(Math.random() * chars.length));
+                        }
+                        originalTextElement.textContent = scrambledText;
+
+                        if (scrambleCount >= maxScrambles) {
+                            clearInterval(scrambleInterval);
+                            originalTextElement.style.opacity = '0';
+                            hoverTextElement.style.opacity = '1';
+                        }
+                    }, 50);
+                });
+
+                line.addEventListener('mouseleave', () => {
+                    line.classList.remove('active-hover');
+                    clearInterval(scrambleInterval);
+                    originalTextElement.style.opacity = '1';
+                    hoverTextElement.style.opacity = '0';
+                    originalTextElement.textContent = originalText;
+                });
+            });
+        }
+
+        function setupNonRevealingLines() {
+            document.querySelectorAll('.eth-line.non-reveal').forEach(line => {
+                const originalTextElement = line.querySelector('.original-text');
+                const originalText = originalTextElement.dataset.originalText;
+
+                let hoverScrambleInterval;
+
+                line.addEventListener('mouseenter', () => {
+                    line.classList.add('active-hover');
+
+                    hoverScrambleInterval = setInterval(() => {
+                        let scrambledText = '';
+                        for (let i = 0; i < originalText.length; i++) {
+                            scrambledText += chars.charAt(Math.floor(Math.random() * chars.length));
+                        }
+                        originalTextElement.textContent = scrambledText;
+                    }, 50);
+                });
+
+                line.addEventListener('mouseleave', () => {
+                    line.classList.remove('active-hover');
+                    clearInterval(hoverScrambleInterval);
+                    originalTextElement.textContent = originalText;
+                });
+            });
+        }
     </script>
 </body>
 </html>
