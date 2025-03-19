@@ -76,7 +76,6 @@
 </head>
 <body>
     <div class="container">
-        
         <div class="eth-line">
             <span class="original-text">0x5EB9F</span>
         </div>
@@ -105,20 +104,35 @@
     <script>
         const chars = '0123456789abcdef';
 
+        // Define links that can be randomly selected
         const links = [
             { url: "https://zora.co/@awv/", text: "Zora" },
             { url: "https://basescan.org/address/0x5eb9f109b4ff060c262854cf6fcaf290d9b80eb1", text: "BaseScan" },
             { url: "mailto:contact@awv.cx", text: "Email" }
         ];
 
+        // Detect touch device
+        const isTouchDevice = () => {
+            return (('ontouchstart' in window) ||
+                (navigator.maxTouchPoints > 0) ||
+                (navigator.msMaxTouchPoints > 0));
+        };
+
+        // Initialize scrambling for all lines once document is loaded
         document.addEventListener('DOMContentLoaded', () => {
             setupAllLines();
         });
 
         function setupAllLines() {
+            // First, setup ambient scrambling for all lines
             setupAmbientScrambling();
 
-            setupHoverEffects();
+            // Then, setup interaction effects with random links
+            if (isTouchDevice()) {
+                setupClickEffects();
+            } else {
+                setupHoverEffects();
+            }
         }
 
         function setupAmbientScrambling() {
@@ -126,26 +140,34 @@
                 const originalTextElement = line.querySelector('.original-text');
                 const originalText = originalTextElement.textContent;
 
+                // Store the original text for reference
                 originalTextElement.dataset.originalText = originalText;
 
+                // Create array to track which positions to scramble
                 const positions = [];
                 for (let i = 0; i < originalText.length; i++) {
-                    if (Math.random() < 0.2) {
+                    if (Math.random() < 0.2) { // 20% chance for each character
                         positions.push(i);
                     }
                 }
 
+                // If no positions were randomly selected, force at least one
                 if (positions.length === 0 && originalText.length > 0) {
                     positions.push(Math.floor(Math.random() * originalText.length));
                 }
 
-                const speed = 150 + Math.floor(Math.random() * 350);
+                // Set unique scramble speed for each line
+                const speed = 150 + Math.floor(Math.random() * 350); // 150-500ms
 
+                // Start ambient scrambling
                 const intervalId = setInterval(() => {
-                    if (!line.classList.contains('active-hover')) {
+                    // Only perform ambient scramble if not being interacted with
+                    if (!line.classList.contains('active-hover') && !line.classList.contains('active-click')) {
                         let text = originalText.split('');
 
+                        // Scramble the selected positions
                         positions.forEach(pos => {
+                            // 10% chance to change which position gets scrambled
                             if (Math.random() < 0.1) {
                                 const idx = positions.indexOf(pos);
                                 positions[idx] = Math.floor(Math.random() * originalText.length);
@@ -161,6 +183,7 @@
                     }
                 }, speed);
 
+                // Store interval ID in the element's dataset for potential cleanup
                 line.dataset.ambientIntervalId = intervalId;
             });
         }
@@ -170,6 +193,7 @@
                 const originalTextElement = line.querySelector('.original-text');
                 const originalText = originalTextElement.dataset.originalText;
 
+                // Create hover text element dynamically for random link selection
                 const hoverTextElement = document.createElement('a');
                 hoverTextElement.className = 'hover-text';
                 hoverTextElement.target = '_blank';
@@ -180,22 +204,27 @@
                 line.addEventListener('mouseenter', () => {
                     line.classList.add('active-hover');
 
+                    // Select a random link
                     const randomLink = links[Math.floor(Math.random() * links.length)];
                     hoverTextElement.href = randomLink.url;
                     hoverTextElement.textContent = randomLink.text;
 
-                    const maxScrambles = 3 + Math.floor(Math.random() * 6);
+                    // Random duration before revealing (3-5 scrambles)
+                    const maxScrambles = 3 + Math.floor(Math.random() * 3);
                     let scrambleCount = 0;
 
+                    // Start scrambling
                     scrambleInterval = setInterval(() => {
                         scrambleCount++;
 
+                        // Scramble all characters
                         let scrambledText = '';
                         for (let i = 0; i < originalText.length; i++) {
                             scrambledText += chars.charAt(Math.floor(Math.random() * chars.length));
                         }
                         originalTextElement.textContent = scrambledText;
 
+                        // After random scramble count, show the hover text
                         if (scrambleCount >= maxScrambles) {
                             clearInterval(scrambleInterval);
                             originalTextElement.style.opacity = '0';
@@ -209,9 +238,111 @@
                     clearInterval(scrambleInterval);
                     originalTextElement.style.opacity = '1';
                     hoverTextElement.style.opacity = '0';
-                    originalTextElement.textContent = originalText;
+
+                    // Scramble back to original text
+                    let reverseScrambleCount = 0;
+                    const maxReverseScrambles = 3;
+
+                    const reverseInterval = setInterval(() => {
+                        reverseScrambleCount++;
+
+                        // Scramble all characters
+                        let scrambledText = '';
+                        for (let i = 0; i < originalText.length; i++) {
+                            scrambledText += chars.charAt(Math.floor(Math.random() * chars.length));
+                        }
+                        originalTextElement.textContent = scrambledText;
+
+                        if (reverseScrambleCount >= maxReverseScrambles) {
+                            clearInterval(reverseInterval);
+                            originalTextElement.textContent = originalText;
+                        }
+                    }, 50);
                 });
             });
+        }
+
+        function setupClickEffects() {
+            document.querySelectorAll('.eth-line').forEach(line => {
+                const originalTextElement = line.querySelector('.original-text');
+                const originalText = originalTextElement.dataset.originalText;
+
+                // Create hover text element dynamically for random link selection
+                const hoverTextElement = document.createElement('a');
+                hoverTextElement.className = 'hover-text';
+                hoverTextElement.target = '_blank';
+                line.appendChild(hoverTextElement);
+
+                // Add click event for mobile
+                line.addEventListener('click', () => {
+                    // Prevent multiple active states
+                    if (line.classList.contains('active-click')) {
+                        return;
+                    }
+
+                    line.classList.add('active-click');
+
+                    // Select a random link
+                    const randomLink = links[Math.floor(Math.random() * links.length)];
+                    hoverTextElement.href = randomLink.url;
+                    hoverTextElement.textContent = randomLink.text;
+
+                    // Random duration before revealing (3-5 scrambles)
+                    const maxScrambles = 3 + Math.floor(Math.random() * 3);
+                    let scrambleCount = 0;
+
+                    // Start scrambling
+                    const scrambleInterval = setInterval(() => {
+                        scrambleCount++;
+
+                        // Scramble all characters
+                        let scrambledText = '';
+                        for (let i = 0; i < originalText.length; i++) {
+                            scrambledText += chars.charAt(Math.floor(Math.random() * chars.length));
+                        }
+                        originalTextElement.textContent = scrambledText;
+
+                        // After random scramble count, show the hover text
+                        if (scrambleCount >= maxScrambles) {
+                            clearInterval(scrambleInterval);
+                            originalTextElement.style.opacity = '0';
+                            hoverTextElement.style.opacity = '1';
+
+                            // Set a timeout to reset after 2 seconds
+                            setTimeout(() => {
+                                resetLine(line, originalTextElement, hoverTextElement, originalText);
+                            }, 2000);
+                        }
+                    }, 50);
+                });
+            });
+        }
+
+        function resetLine(line, originalTextElement, hoverTextElement, originalText) {
+            // Start a reversal scramble
+            let scrambleCount = 0;
+            const maxScrambles = 3;
+
+            hoverTextElement.style.opacity = '0';
+            originalTextElement.style.opacity = '1';
+
+            const resetInterval = setInterval(() => {
+                scrambleCount++;
+
+                // Scramble all characters
+                let scrambledText = '';
+                for (let i = 0; i < originalText.length; i++) {
+                    scrambledText += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+                originalTextElement.textContent = scrambledText;
+
+                // After scrambling, return to original text
+                if (scrambleCount >= maxScrambles) {
+                    clearInterval(resetInterval);
+                    originalTextElement.textContent = originalText;
+                    line.classList.remove('active-click');
+                }
+            }, 50);
         }
     </script>
 </body>
