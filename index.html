@@ -25,6 +25,16 @@
             color: #e0e0e0;
         }
 
+        a, a:visited {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        a {
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+        }
+
         .container {
             text-align: center;
         }
@@ -63,7 +73,6 @@
         }
 
         @media (hover: hover) {
-            /* Styles for devices that support hover */
             .eth-line:hover .original-text {
                 opacity: 0;
             }
@@ -89,39 +98,38 @@
     <div class="container">
         <div class="eth-line">
             <span class="original-text">0xe392d</span>
-            <a class="hover-text" target="_blank"></a>
+            <a class="hover-text" target="_blank" rel="noopener noreferrer"></a>
         </div>
 
         <div class="eth-line">
             <span class="original-text">ae34f56</span>
-            <a class="hover-text" target="_blank"></a>
+            <a class="hover-text" target="_blank" rel="noopener noreferrer"></a>
         </div>
 
         <div class="eth-line">
             <span class="original-text">1252528</span>
-            <a class="hover-text" target="_blank"></a>
+            <a class="hover-text" target="_blank" rel="noopener noreferrer"></a>
         </div>
 
         <div class="eth-line">
             <span class="original-text">3a0575d</span>
-            <a class="hover-text" target="_blank"></a>
+            <a class="hover-text" target="_blank" rel="noopener noreferrer"></a>
         </div>
 
         <div class="eth-line">
             <span class="original-text">1ad90f9</span>
-            <a class="hover-text" target="_blank"></a>
+            <a class="hover-text" target="_blank" rel="noopener noreferrer"></a>
         </div>
 
         <div class="eth-line">
             <span class="original-text">208ac32</span>
-            <a class="hover-text" target="_blank"></a>
+            <a class="hover-text" target="_blank" rel="noopener noreferrer"></a>
         </div>
     </div>
 
     <script>
         const chars = '0123456789abcdef';
 
-        // Define links that can be randomly selected
         const links = [
             { url: "https://zora.co/@awv/", text: "Zora" },
             { url: "https://dexscreener.com/base/0xe392dae34f5612525283a0575d1ad90f9208ac32", text: "$awv" },
@@ -129,22 +137,18 @@
             { url: "mailto:contact@awv.cx", text: "Email" }
         ];
 
-        // This will detect if the device supports hover
         const hasHover = window.matchMedia('(hover: hover)').matches;
 
         document.addEventListener('DOMContentLoaded', () => {
             setupAmbientScrambling();
 
             if (!hasHover) {
-                // For touch devices
                 setupTouchInteraction();
             } else {
-                // For hover devices, setup hover animations
                 setupHoverAnimations();
             }
         });
 
-        // Helper function to get a random link
         function getRandomLink() {
             return links[Math.floor(Math.random() * links.length)];
         }
@@ -154,10 +158,8 @@
                 const originalTextElement = line.querySelector('.original-text');
                 const originalText = originalTextElement.textContent;
 
-                // Store the original text
                 originalTextElement.dataset.originalText = originalText;
 
-                // Create array to track which positions to scramble
                 const positions = [];
                 for (let i = 0; i < originalText.length; i++) {
                     if (Math.random() < 0.2) {
@@ -172,7 +174,6 @@
                 const speed = 150 + Math.floor(Math.random() * 350);
 
                 const intervalId = setInterval(() => {
-                    // Only perform ambient scramble if not active
                     if (!line.classList.contains('active') && !line.classList.contains('revealed')) {
                         let text = originalText.split('');
 
@@ -207,19 +208,15 @@
                 line.addEventListener('mouseenter', () => {
                     line.classList.add('active');
 
-                    // Set a random link
                     const randomLink = getRandomLink();
                     hoverTextElement.href = randomLink.url;
                     hoverTextElement.textContent = randomLink.text;
 
-                    // Random duration before revealing
                     const maxScrambles = 3 + Math.floor(Math.random() * 3);
                     let scrambleCount = 0;
 
                     scrambleInterval = setInterval(() => {
                         scrambleCount++;
-
-                        // Scramble all characters
                         let scrambledText = '';
                         for (let i = 0; i < originalText.length; i++) {
                             scrambledText += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -240,13 +237,11 @@
                     originalTextElement.style.opacity = '1';
                     hoverTextElement.style.opacity = '0';
 
-                    // Scramble back to original
                     let reverseScrambleCount = 0;
                     const maxReverseScrambles = 3;
 
                     const reverseInterval = setInterval(() => {
                         reverseScrambleCount++;
-
                         let scrambledText = '';
                         for (let i = 0; i < originalText.length; i++) {
                             scrambledText += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -268,44 +263,28 @@
                 const hoverTextElement = line.querySelector('.hover-text');
                 const originalText = originalTextElement.dataset.originalText;
 
-                // Flag to track if this line is in revealed state
                 let isRevealed = false;
                 let resetTimer = null;
 
-                // Handle click on the line
                 line.addEventListener('click', (e) => {
-                    // If link is visible and the clicked element is the link,
-                    // let the browser handle the navigation
                     if (isRevealed && e.target === hoverTextElement) {
-                        return; // Allow default behavior to navigate
+                        return;
                     }
-
-                    // If link isn't visible, prevent default and show the link
                     e.preventDefault();
-
-                    // If already revealed, don't do anything
                     if (isRevealed) return;
-
-                    // Clear any existing timer
-                    if (resetTimer) {
-                        clearTimeout(resetTimer);
-                    }
+                    if (resetTimer) clearTimeout(resetTimer);
 
                     line.classList.add('active');
 
-                    // Set a random link
                     const randomLink = getRandomLink();
                     hoverTextElement.href = randomLink.url;
                     hoverTextElement.textContent = randomLink.text;
 
-                    // Random duration before revealing
                     const maxScrambles = 3 + Math.floor(Math.random() * 3);
                     let scrambleCount = 0;
 
                     const scrambleInterval = setInterval(() => {
                         scrambleCount++;
-
-                        // Scramble all characters
                         let scrambledText = '';
                         for (let i = 0; i < originalText.length; i++) {
                             scrambledText += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -317,11 +296,9 @@
                             originalTextElement.style.opacity = '0';
                             hoverTextElement.style.opacity = '1';
 
-                            // Mark as revealed
                             isRevealed = true;
                             line.classList.add('revealed');
 
-                            // Auto reset after 2 seconds
                             resetTimer = setTimeout(() => {
                                 resetToOriginal();
                             }, 2000);
@@ -335,13 +312,11 @@
                     hoverTextElement.style.opacity = '0';
                     isRevealed = false;
 
-                    // Scramble back to original
                     let reverseScrambleCount = 0;
                     const maxReverseScrambles = 3;
 
                     const reverseInterval = setInterval(() => {
                         reverseScrambleCount++;
-
                         let scrambledText = '';
                         for (let i = 0; i < originalText.length; i++) {
                             scrambledText += chars.charAt(Math.floor(Math.random() * chars.length));
